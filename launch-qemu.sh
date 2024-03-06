@@ -12,6 +12,10 @@ USE_VIRTIO="1"
 DISCARD="none"
 USE_DEFAULT_NETWORK="0"
 CPU_MODEL="EPYC-v4"
+MONITOR_PATH=monitor
+QEMU_CONSOLE_LOG=`pwd`/stdout.log
+CERTS_PATH=
+
 
 SEV="0"
 SEV_ES="0"
@@ -42,6 +46,9 @@ usage() {
 	echo " -cdrom PATH        CDROM image"
 	echo " -default-network   enable default usermode networking"
 	echo "                    (Requires that QEMU is built on a host that supports libslirp-dev 4.7 or newer)"
+	echo " -monitor PATH      Path to QEMU monitor socket (default: $MONITOR_PATH)"
+	echo " -log PATH          Path to QEMU console log (default: $QEMU_CONSOLE_LOG)"
+	echo " -certs PATH        Path to SNP certificate blob for guest (default: none)"
 	exit 1
 }
 
@@ -135,6 +142,15 @@ while [ -n "$1" ]; do
 				;;
 		-default-network)
 				USE_DEFAULT_NETWORK="1"
+				;;
+		-monitor)       MONITOR_PATH="$2"
+				shift
+				;;
+		-log)           QEMU_CONSOLE_LOG="$2"
+				shift
+				;;
+		-certs) CERTS_PATH="$2"
+				shift
 				;;
 		*) 		usage
 				;;
@@ -273,9 +289,13 @@ if [ ${SEV} = "1" ]; then
 	fi
 
 	if [ "${SEV_SNP}" = 1 ]; then
-		add_opts "-object memory-backend-memfd-private,id=ram1,size=${MEM}M,share=true"
-		add_opts "-object sev-snp-guest,id=sev0,cbitpos=${CBITPOS},reduced-phys-bits=1,discard=${DISCARD}"
-		add_opts "-machine memory-backend=ram1,kvm-type=protected"
+		add_opts "-object memory-backend-memfd,id=ram1,size=${MEM}M,share=true,prealloc=false"
+		add_opts "-machine memory-backend=ram1"
+		if [ "${CERTS_PATH}" != "" ]; then
+			add_opts "-object sev-snp-guest,id=sev0,cbitpos=${CBITPOS},reduced-phys-bits=1,certs-path=${CERTS_PATH}"
+		else
+			add_opts "-object sev-snp-guest,id=sev0,cbitpos=${CBITPOS},reduced-phys-bits=1"
+		fi
 	else
 		add_opts "-object sev-guest,id=sev0${SEV_POLICY},cbitpos=${CBITPOS},reduced-phys-bits=1"
 	fi
@@ -300,10 +320,7 @@ else
 fi
 
 # start monitor on pty and named socket 'monitor'
-add_opts "-monitor pty -monitor unix:monitor,server,nowait"
-
-# log the console  output in stdout.log
-QEMU_CONSOLE_LOG=`pwd`/stdout.log
+add_opts "-monitor pty -monitor unix:${MONITOR_PATH},server,nowait"
 
 # save the command line args into log file
 cat $QEMU_CMDLINE | tee ${QEMU_CONSOLE_LOG}
