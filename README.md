@@ -6,6 +6,20 @@ Note that SNP hypervisor support is still being actively developed/upstreamed an
 
 Follow the below steps to build the required components and launch an SEV-SNP guest. These steps are tested primarily in conjunction with Ubuntu 22.04 hosts/guests, but other distros are supported to some degree by contributors to this repo.
 
+## Build Dependencies
+On a Debian 12 installation, we additionally need
+```bash
+# Must be at least 3.0.1 for SEV-SNP attestation to work (thx @secretfader)
+$ sudo apt-get install openssl && openssl version
+OpenSSL 3.0.1 14 Dec 2021 (Library: OpenSSL 3.0.1 14 Dec 2021)
+# Is outdated (thx @secretfader)
+$ sudo apt-get install nasm
+# OVMF needs this
+$ sudo apt-get install iasl
+# QEMU needs this
+$ sudo apt-get install libelf-dev
+```
+
 ## Upgrading from 6.6-based SNP hypervisor/host kernels
 
 QEMU command-line options have changed for basic booting of SNP guests. Please see the launch-qemu.sh script in this repository for updated options.
