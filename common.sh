@@ -155,12 +155,6 @@ build_install_ovmf()
 		GCCVERS="GCC5"
 	fi
 
-	# Build AmdSevx64 UEFI code as per https://github.com/AMDESE/AMDSEV/issues/93#issuecomment-1514158728
-	touch OvmfPkg/AmdSev/Grub/grub.efi || { 
-		echo "Could not create grub.efi file"
-		exit 1 
-	}
-
 	BUILD_CMD="nice build -q --cmd-len=64436 -DDEBUG_ON_SERIAL_PORT=TRUE -n $(getconf _NPROCESSORS_ONLN) ${GCCVERS:+-t $GCCVERS} -a X64 -p OvmfPkg/AmdSev/AmdSevX64.dsc"
 
 	# initialize git repo, or update existing remote to currently configured one
@@ -185,6 +179,12 @@ build_install_ovmf()
 		run_cmd git submodule update --init --recursive
 		run_cmd make -C BaseTools
 		. ./edksetup.sh --reconfig
+
+		# AmdSevx64 UEFI code needs this file present as per https://github.com/AMDESE/AMDSEV/issues/93#issuecomment-1514158728
+		touch OvmfPkg/AmdSev/Grub/grub.efi || { 
+			echo "Could not create grub.efi file"
+			exit 1 
+		}
 		run_cmd $BUILD_CMD
 
 		mkdir -p $DEST
