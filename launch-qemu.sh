@@ -286,23 +286,27 @@ if [ ${SEV} = "1" ]; then
 	add_opts "-machine memory-encryption=sev0,vmport=off" 
 	get_cbitpos
 
-	if [ "${ALLOW_DEBUG}" = "1" -o "${SEV_ES}" = 1 ]; then
-		POLICY=$((0x01))
-		[ "${ALLOW_DEBUG}" = "1" ] && POLICY=$((POLICY & ~0x01))
-		[ "${SEV_ES}" = "1" ] && POLICY=$((POLICY | 0x04))
-		SEV_POLICY=$(printf ",policy=%#x" $POLICY)
-	fi
-
 	if [ "${SEV_SNP}" = 1 ]; then
+		POLICY=$((0x30000))
+		[ -n "${ALLOW_DEBUG}" ] && POLICY=$((POLICY | 0x80000))
+
+		POLICY=$(printf "%#x" $POLICY)
+
 		add_opts "-object memory-backend-memfd,id=ram1,size=${MEM}M,share=true,prealloc=false"
 		add_opts "-machine memory-backend=ram1"
 		if [ "${CERTS_PATH}" != "" ]; then
-			add_opts "-object sev-snp-guest,id=sev0,cbitpos=${CBITPOS},reduced-phys-bits=1,certs-path=${CERTS_PATH}"
+			add_opts "-object sev-snp-guest,id=sev0,policy=${POLICY},cbitpos=${CBITPOS},reduced-phys-bits=1,certs-path=${CERTS_PATH}"
 		else
-			add_opts "-object sev-snp-guest,id=sev0,cbitpos=${CBITPOS},reduced-phys-bits=1"
+			add_opts "-object sev-snp-guest,id=sev0,policy=${POLICY},cbitpos=${CBITPOS},reduced-phys-bits=1"
 		fi
 	else
-		add_opts "-object sev-guest,id=sev0${SEV_POLICY},cbitpos=${CBITPOS},reduced-phys-bits=1"
+		POLICY=$((0x01))
+		[ -n "${SEV_ES}" ] && POLICY=$((POLICY | 0x04))
+		[ -n "${ALLOW_DEBUG}" ] && POLICY=$((POLICY & ~0x01))
+
+		POLICY=$(printf "%#x" $POLICY)
+
+		add_opts "-object sev-guest,id=sev0,policy=${POLICY},cbitpos=${CBITPOS},reduced-phys-bits=1"
 	fi
 fi
 
