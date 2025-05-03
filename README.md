@@ -1,3 +1,15 @@
+### LIT NOTES - Prereqs
+amdsev/qemu: apt-get install python3-sphinx ninja-build libglib2.0-dev
+ovmf: apt-get install uuid-dev nasm acpica-tools gcc-multilib nasm
+linux: apt-get install bison flex libelf-dev
+
+optional for default networking in a VM: apt-get install libslirp-dev
+
+### LIT NOTES - BUILDING
+install `just` and run the default `just` command to build a package you can plug into lit-os
+
+=== DEFAULT UPSTREAM README FOLLOWS ====
+
 ## Overview
 
 This repo will build host/guest kernel, QEMU, and OVMF packages that are known to work in conjunction with the latest development trees for SNP host/hypervisor support. The build scripts will utilize the latest published [development tree for the SNP host kernel](https://github.com/amdese/linux/tree/snp-host-latest), which will generally correspond to the latest patchset posted upstream along with fixes/changes on top resulting from continued development/testing and upstream review. It will also utilize the latest published [development tree for QEMU](https://github.com/amdese/qemu/tree/snp-latest).
