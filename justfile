@@ -31,7 +31,7 @@ bundle: firmware build
     mkdir -p lit_dist/packages/firmware
     mkdir -p lit_dist/packages/snp-release-current
     # copy snp-release to lit_dist/snp-current
-    cp -r snp-release-$(date +%Y-%m-%d) lit_dist/packages/snp-release
+    cp -r snp-release-$(date +%Y-%m-%d) lit_dist/packages/snp-release-current
     # copy firmware to lit_dist/firmware
     cp firmware/amd_sev_fam19h_model0xh.sbin lit_dist/packages/firmware/
     cp firmware/amd_sev_fam19h_model1xh.sbin lit_dist/packages/firmware/
